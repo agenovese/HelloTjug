@@ -29,6 +29,7 @@ jobs:
           key: v1-dependencies-{{ checksum "pom.xml" }}
         
       - run: mvn verify
+      - run: mvn clean cobertura:cobertura coveralls:report
 
       - run:
           name: Save test results
