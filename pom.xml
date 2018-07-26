@@ -19,6 +19,12 @@
         <scope>test</scope>
     </dependency>
   </dependencies>
+  <distributionManagement>
+    <repository>
+      <id>bintray</id>
+      <url>https://api.bintray.com/maven/agenovese/maven/HelloTjug/;publish=1</url>
+    </repository>
+  </distributionManagement>
   <build>
   <plugins>
     <plugin>

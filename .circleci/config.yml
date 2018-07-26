@@ -30,6 +30,7 @@ jobs:
         
       - run: mvn verify
       - run: mvn clean cobertura:cobertura coveralls:report
+      - run: bash <(curl -s https://codecov.io/bash)
 
       - run:
           name: Save test results
@@ -42,6 +43,39 @@ jobs:
       - store_artifacts:
           path: ~/junit  
 
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory
+          root: ..
+          # Must be relative path from root
+          paths:
+            - repo
+
+  deploy:
+    docker:
+      # specify the version you desire here
+      - image: circleci/openjdk:8-jdk
+
+    working_directory: ~/repo
+
+    environment:
+      # Customize the JVM maximum heap limit
+      JVM_OPTS: -Xmx3200m
+      TERM: dumb
+
+    steps:
+      - attach_workspace:
+          at: /home/circleci
+
+      - run: .circleci/set_version.sh
+
+      - restore_cache:
+          keys:
+          - v1-dependencies-{{ checksum "pom.xml" }}
+          # fallback to using the latest cache if no exact match is found
+          - v1-dependencies-
+
+      - run: mvn -s .circleci/m2-settings.xml jar:jar deploy:deploy
+
 workflows:
   version: 2
   build_deploy:
@@ -52,3 +86,11 @@ workflows:
               only: /.*/
             branches:
               only: /.*/
+      - deploy:
+          requires:
+            - build
+          filters:
+            tags:
+              only: /^release-[0-9]+(\.[0-9]+)*/
+            branches:
+              ignore: /.*/
